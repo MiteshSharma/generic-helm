@@ -1,0 +1,9 @@
+apiVersion: v1
+name: application
+description: Generic helm chart for all kind of applications
+
+# Helm chart Version
+version: 0.0.1
+
+keywords:
+  - kubernetes

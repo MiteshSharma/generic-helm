@@ -1,0 +1,302 @@
+applicationName: "core"
+
+# Override the deployment namespace
+namespaceOverride: ""
+
+# These labels will be added on all resources
+labels:
+  team: core
+  owner: xyz@zyx.com
+
+deployment:
+  # Image of the app container
+  image: 
+    repository: repository/image-name
+    tag: v1.0.0
+    pullPolicy: IfNotPresent
+
+  strategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
+
+  # Deployment pod host aliases
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  hostAliases: []
+
+  # Init containers which runs before the app container
+  # Ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  initContainers:
+  # - name: init-contaner
+  #   image: busybox
+  #   imagePullPolicy: IfNotPresent
+  #   command: ['/bin/sh']    
+
+  additionalLabels: {}
+
+  podLabels: {}
+
+  annotations: {}
+
+  # Additional Pod Annotations added on pod created by this deployment
+  additionalPodAnnotations: {}
+
+  # Replicas to be created
+  replicas: 1
+
+  # Secrets used to pull image
+  imagePullSecrets: ""
+
+  # The name of a secret or configmap in the same kubernetes namespace which contain values to be added to the environment
+  # This can be useful for auth tokens, etc
+  envFrom: []
+  # - type: configmap
+  #   name: my-configmap
+  # - type: secret
+  #   name: my-secret
+
+  # Environment variables to be passed to the app container
+  env:
+  # - name: env
+  #   value: "dev"
+
+  # Volumes to be added to the pod
+  volumes:
+    # - name: config-volume
+    #   configMap:        
+    #     name: configmap-name
+    # - name: secret-volume
+    #   secret:        
+    #     secretName: secret-name
+
+  # Additional volumeMounts to the controller main container.
+  volumeMounts:
+    # - mountPath: /path
+    #   name: volume-name
+
+  # Node selectors and tolerations for server scheduling to nodes with taints
+  # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Readiness and liveness probes for default backend
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+  probes:
+    readinessProbe:
+      failureThreshold: 3
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+      initialDelaySeconds: 10
+      httpGet:
+        path: /path
+        port: 8080
+    livenessProbe:
+      failureThreshold: 3
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+      initialDelaySeconds: 10
+      httpGet:
+        path: /path
+        port: 8080
+
+  # Resources to be defined for pod
+  # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: 
+    limits:
+      memory: 256Mi
+      cpu: 0.5
+    requests:
+      memory: 128Mi
+      cpu: 0.1
+
+  # Add additional containers besides init and app containers
+  additionalContainers:
+  # - name: sidecar-contaner
+  #   image: busybox
+  #   imagePullPolicy: IfNotPresent
+  #   command: ['/bin/sh']    
+
+  # Pod Security Context
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  securityContext:
+    fsGroup: 70
+    runAsUser: 70
+
+  # List of ports for the primary container
+  ports:
+    - containerPort: 8080
+      name: http
+      protocol: TCP
+
+# Service object for servicing pods
+service:
+  additionalLabels: {}
+
+  annotations: {}
+
+  ports:
+    - port: 8080
+      name: http
+      protocol: TCP
+      targetPort: 8080
+
+# Ingress object for exposing services to external world
+ingress:
+  enabled: false
+
+  servicePort: http
+
+  hosts:
+    - example.local
+
+  annotations: {}
+
+  tls:
+    # Secrets must be manually created in the namespace.
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+
+# Role Based Access Control
+rbac:
+  enabled: false
+  # Service Account to use by pods
+  serviceAccount:
+    enabled: false
+    name: ""
+
+    additionalLabels: {}
+
+    annotations: {}
+
+  # Create Roles
+  roles:
+  # - name: configmaps
+  #   rules:
+  #   - apiGroups:
+  #     - ""
+  #     resources:
+  #     - configmaps
+  #     verbs:
+  #     - get
+
+  # Create ClusterRoles
+  clusterroles:
+  # - name: configmaps
+  #   rules:
+  #   - apiGroups:
+  #     - ""
+  #     resources:
+  #     - configmaps
+  #     verbs:
+  #     - get
+
+# Additional ConfigMaps  
+configMap:
+  enabled: false
+  additionalLabels: 
+    # key: value
+  annotations: 
+    # key: value
+  files:
+  # - nameSuffix: app-config    
+  #   data:
+  #     key1: value1
+  #     key2: value2
+
+# Additional Secrets
+secret:
+  enabled: false
+  additionalLabels: {}
+  annotations: {}
+  files:    
+  # - nameSuffix: credentials
+  #   data:
+  #     key1: secretValue1
+  #     key2: secretValue2
+
+# horizonal pod autoscaling
+autoscaling:
+  enabled: false
+  additionalLabels: {}
+  annotations: {}
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageUtilization: 70
+
+# AlertmanagerConfig object for defining application specific alertmanager configurations
+alertmanagerConfig:
+  enabled: false
+
+  # AlertmanagerConfig selectionLabels to specify label to be picked up by Alertmanager to add it to base config. 
+  selectionLabels:
+    alertmanagerConfig: "core"
+
+  # AlertmanagerConfig
+  spec:
+    route:
+    #   receiver: "null"
+    #   groupBy:
+    #   - job
+    #   routes:
+    #   - receiver: "null"
+    #     groupBy:
+    #     - alertname
+    #     - severity
+    #     continue: true
+    #   groupWait: 30s
+    #   groupInterval: 5m
+    #   repeatInterval: 12h
+    receivers: []
+    # - name: "null"
+    inhibitRules: []
+    # - sourceMatch:
+    #     severity: 'critical'
+    #   targetMatch:
+    #     severity: 'warning'
+    #   equal: ['cluster', 'service']
+
+# PrometheusRule object for defining application alerting rules
+prometheusRule:
+  enabled: false
+
+  # PrometheusRule labels
+  additionalLabels: {}
+
+  # Groups with alerting rules
+  # https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+  groups: []
+  # - name: example
+  #   rules:
+  #   - alert: HighRequestLatency
+  #     expr: job:request_latency_seconds:mean5m{job="myjob"} > 0.5
+  #     for: 10m
+  #     labels:
+  #       severity: page
+  #     annotations:
+  #       summary: High request latency
+
+# Service Monitor to collect Prometheus metrices
+serviceMonitor:
+  enabled: false
+
+  additionalLabels: {}
+
+  annotations: {}
+  # List of the endpoints of service from which prometheus will scrape data
+  endpoints:
+  - interval: 5s
+    path: /api/prometheus
+    port: http
